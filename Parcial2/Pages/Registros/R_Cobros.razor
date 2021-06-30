@@ -1,5 +1,292 @@
-﻿<h3>R_Cobros</h3>
+﻿@*
+@page "/cobro"
+@page "/cobro/{CobroId:int}"
 
-@code {
+@using Parcial2.BLL
+@using Parcial2.Models
+@using Parcial2.DAL
+@using Blazored.Toast.Services
 
-}
+@inject IToastService toast
+
+<EditForm Model="cobros" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <section class="form-register">
+        <div class="card">
+            <div class="card-header">
+                <h3>Registro de Cobros</h3>
+            </div>
+
+            <div class="card-body">
+                <form>
+                    <div class="form-row align-items-center">
+                        <div class="col">
+                            <div class="form-group">
+                                <label>ID:</label>
+                                <div class="input-group">
+                                    <InputNumber @bind-Value="cobros.CobroId" class="form-control col-4" />
+                                    <ValidationMessage For="(() => cobros.CobroId)"></ValidationMessage>
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-primary" @onclick="Buscar"><i class="oi oi-magnifying-glass" /> Buscar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @*Fecha*@
+                    <div class="form-group">
+                        <label>Fecha:</label>
+                        <InputDate @bind-Value="cobros.Fecha" class="form-control col-5" />
+                        <ValidationMessage For="@(() => cobros.Fecha)" />
+                    </div>
+
+                    @*Venta*@
+                    <div class="form-group">
+                        <label>Ventas:</label>
+                        <div class="input-group">
+                            <select class="form-control col-5" @bind="cobros.VentaId" @onclick="Get">
+                                @foreach (var item in listaVentas)
+                                {
+                <option value="@item.VentaId">@item.VentaId</option>}
+                            </select>
+                            <ValidationMessage For="@(() => cobros.VentaId)" />
+                        </div>
+                    </div>
+
+                    @*Cliente*@
+                    <div class="form-group">
+                        <label>Clientes:</label>
+                        <div class="input-group">
+                            <select class="form-control col-5" @bind="cobros.ClienteId">
+                                @foreach (var item in listaClientes)
+                                {
+                <option value="@item.ClienteId">@item.Nombres</option>}
+                            </select>
+                            <ValidationMessage For="@(() => cobros.ClienteId)" />
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-primary" @onclick="Agregar"><i class="oi oi-plus" /> Agregar</button>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                    @*Detalle*@
+                    <div class="table-responsive text-nowrap">
+                        <label>Facturas Pendientes</label>
+                        <table class="table table-striped">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Fecha</th>
+                                    <th>Monto</th>
+                                    <th>Balance</th>
+                                    <th>Cobrado</th>
+                                    <th>Pagar</th>
+                                    <th>   </th>
+                                </tr>
+                            </thead>
+
+                            <tbody class="bg-white">
+                                @foreach (var item in cobros.CobrosDetalle)
+                                {
+                <tr>
+                    <td>@item.CobroDetalleId</td>
+                    <td>@item.Fecha</td>
+                    <td>@item.Monto</td>
+                    <td>@item.Balance</td>
+                    <td>@item.Cobrado</td>
+                    <td><input type="checkbox" @onchange="@(() => Cobrar(item))"></td>
+                    <td><button type="button" class="btn btn-outline-danger" @onclick="(() => EliminarCobrosDetalle(item))">Remover</button></td>
+                </tr>}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    @*Totales *@
+                    <div class="form-group">
+                        <div class="form-control col-6" style="float:left;">
+                            <label>Total:</label>
+                            <span>@cobros.CobrosDetalle.Count()</span>
+                        </div>
+                    </div>
+
+                    @*Total*@
+                    <div class="form-group">
+                        <label>Total Cobrado:</label>
+                        <InputNumber @bind-Value="cobros.Cobrado" class="form-control col-5" readonly="true" style="float:right;" />
+                        <ValidationMessage For="@(() => cobros.Cobrado)" />
+                    </div>
+
+                    @*Observaciones*@
+                    <div class="form-group">
+                        <label>Observaciones:</label>
+                        <InputText @bind-Value="cobros.Observaciones" class="form-control col-5" />
+                        <ValidationMessage For="@(() => cobros.Observaciones)" />
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-footer">
+                <div class="form-group text-center" display: inline-block>
+                    <button type="button" class="btn btn-lg btn-primary" @onclick="Nuevo"><i class="oi oi-file mr-2" />Nuevo</button>
+                    <button type="submit" class="btn btn-lg btn-success"><i class="oi oi-account-login" style="transform:rotate(90deg)" /> Guardar</button>
+                    <button type="button" class="btn btn-lg btn-danger" @onclick="Eliminar"><i class="oi oi-trash mr-2" />Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </section>
+</EditForm>
+
+@code { [Parameter]
+    public int CobroId { get; set; }
+
+    Cobros cobros = new Cobros();
+    Contexto contexto = new Contexto();
+    List<Ventas> listaVentas = new List<Ventas>();
+    List<Clientes> listaClientes = new List<Clientes>();
+
+    public double encontrarmonto { get; set; }
+    public double encontrarbalance { get; set; }
+    public DateTime encontrarfecha { get; set; }
+
+
+    protected override void OnInitialized()
+    {
+        Nuevo();
+        if (CobroId > 0)
+        {
+            var auxCobro = CobrosBLL.Buscar(CobroId);
+            if (auxCobro != null)
+                this.cobros = auxCobro;
+            else
+                toast.ShowWarning("No encontrado.");
+        }
+        listaClientes = ClientesBLL.GetList(p => true);
+        listaVentas = VentasBLL.GetList(p => true);
+    }
+
+    private void Buscar()
+    {
+        var encontrado = CobrosBLL.Buscar(cobros.CobroId);
+        if (encontrado != null)
+        {
+            this.cobros = encontrado;
+        }
+        else
+            toast.ShowWarning("No encontrado");
+    }
+
+    private void Nuevo()
+    {
+        this.cobros = new Cobros();
+        encontrarmonto = 0;
+        encontrarfecha = DateTime.Now;
+        encontrarbalance = 0;
+    }
+
+
+    private void Agregar()
+    {
+
+        this.cobros.CobrosDetalle.Add(new CobrosDetalle
+        {
+            CobroDetalleId = 0,
+            Fecha = encontrarfecha,
+            Monto = encontrarmonto,
+            Balance = encontrarbalance,
+
+        });
+        encontrarmonto = 0;
+        encontrarfecha = DateTime.Now;
+        encontrarbalance = 0;
+    }
+
+    private void Cobrar(CobrosDetalle detalle)
+    {
+        var item = VentasBLL.Buscar(cobros.VentaId);
+        detalle.Cobrado = item.Balance;
+        item.Balance -= detalle.Cobrado;
+        CalcularTotal();
+    }
+
+    private void Get()
+    {
+        var auxMonto = VentasBLL.Buscar(cobros.VentaId);
+        var auxBalance = VentasBLL.Buscar(cobros.VentaId);
+        var auxFecha = VentasBLL.Buscar(cobros.VentaId);
+        if (auxFecha != null & auxMonto != null & auxBalance != null)
+        {
+            encontrarfecha = auxFecha.Fecha;
+            encontrarmonto = auxMonto.Monto;
+            encontrarbalance = auxBalance.Balance;
+        }
+    }
+
+    private void CalcularTotal()
+    {
+        double Total = 0;
+        foreach (var item in cobros.CobrosDetalle)
+        {
+            Total += item.Balance;
+        }
+        cobros.Cobrado = Total;
+    }
+
+    private void EliminarCobrosDetalle(CobrosDetalle detalle)
+    {
+        try
+        {
+            cobros.CobrosDetalle.Remove(detalle);
+            CalcularTotal();
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+
+    private void Guardar()
+    {
+        bool paso;
+        if (cobros.CobrosDetalle.Count == 0)
+        {
+            toast.ShowWarning("Tienes que agregar al menos un elemento a la lista", "Lista Vacía!");
+            return;
+        }
+        else
+        {
+            var item = VentasBLL.Buscar(cobros.VentaId);
+            item.Balance -= cobros.Cobrado;
+            paso = CobrosBLL.Guardar(cobros);
+
+            if (paso)
+            {
+                Nuevo();
+                toast.ShowSuccess("Guardado correctamente");
+            }
+            else
+            {
+                toast.ShowError("No fue posible guardar");
+            }
+        }
+    }
+
+    private void Eliminar()
+    {
+        bool elimino;
+
+        elimino = CobrosBLL.Eliminar(cobros.CobroId);
+
+        if (elimino)
+        {
+            Nuevo();
+            toast.ShowSuccess("Eliminado correctamente");
+        }
+        else
+            toast.ShowError("No fue posible eliminar");
+    } 
+ }
