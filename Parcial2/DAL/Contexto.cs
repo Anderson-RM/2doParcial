@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Parcial2.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,10 @@ namespace Parcial2.DAL
             optionsBuilder.UseSqlite(@"Data Source=DATA\Cobros.db");
         }
 
-        /*public DbSet<Clientes> Clientes { get; set; }
+        public DbSet<Clientes> Clientes { get; set; }        
         public DbSet<Ventas> Ventas { get; set; }
         public DbSet<Cobros> Cobros { get; set; }
-
+        /*
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Clientes>().HasData(new Clientes() { ClienteId = 1, Nombres = "FERRETERIA GAMA" });

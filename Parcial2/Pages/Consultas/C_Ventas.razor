@@ -52,19 +52,21 @@
         <tbody>
             @foreach (var item in lista)
             {
-<tr>
-    <td>@item.VentaId</td>
-    <td>@item.Fecha</td>
-    <td>@item.ClienteId</td>
-    <td>@item.Monto</td>
-    <td>@Get()</td>
-    <a href="/cobro/@item.VentaId">VER</a>
-</tr>}
+                <tr>
+                    <td>@item.VentaId</td>
+                    <td>@item.Fecha</td>
+                    <td>@item.ClienteId</td>
+                    <td>@item.Monto</td>
+                    <td>@Get()</td>
+                    <a href="/cobro/@item.VentaId">VER</a>
+                </tr>
+            }
         </tbody>
     </table>
 </div>
 
-@code { public int filtro { get; set; }
+@code { 
+    public int filtro { get; set; }
     public string criterio { get; set; }
     public List<Ventas> lista = new List<Ventas>();
 

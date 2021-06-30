@@ -1,5 +1,4 @@
-﻿@*
-@page "/cobro"
+﻿@page "/cobro"
 @page "/cobro/{CobroId:int}"
 
 @using Parcial2.BLL
@@ -61,7 +60,8 @@
                             <select class="form-control col-5" @bind="cobros.ClienteId">
                                 @foreach (var item in listaClientes)
                                 {
-                <option value="@item.ClienteId">@item.Nombres</option>}
+                                    <option value="@item.ClienteId">@item.Nombres</option>
+                                }
                             </select>
                             <ValidationMessage For="@(() => cobros.ClienteId)" />
                             <div class="input-group-append">
@@ -69,9 +69,6 @@
                             </div>
                         </div>
                     </div>
-
-
-
 
                     @*Detalle*@
                     <div class="table-responsive text-nowrap">
@@ -92,15 +89,15 @@
                             <tbody class="bg-white">
                                 @foreach (var item in cobros.CobrosDetalle)
                                 {
-                <tr>
-                    <td>@item.CobroDetalleId</td>
-                    <td>@item.Fecha</td>
-                    <td>@item.Monto</td>
-                    <td>@item.Balance</td>
-                    <td>@item.Cobrado</td>
-                    <td><input type="checkbox" @onchange="@(() => Cobrar(item))"></td>
-                    <td><button type="button" class="btn btn-outline-danger" @onclick="(() => EliminarCobrosDetalle(item))">Remover</button></td>
-                </tr>}
+                                    <tr>
+                                        <td>@item.CobroDetalleId</td>
+                                        <td>@item.Fecha</td>
+                                        <td>@item.Monto</td>
+                                        <td>@item.Balance</td>
+                                        <td>@item.Cobrado</td>
+                                        <td><input type="checkbox" @onchange="@(() => Cobrar(item))"></td>
+                                        <td><button type="button" class="btn btn-outline-danger" @onclick="(() => EliminarCobrosDetalle(item))">Remover</button></td>
+                                    </tr>}
                             </tbody>
                         </table>
                     </div>
