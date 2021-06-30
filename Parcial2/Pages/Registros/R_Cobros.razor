@@ -47,7 +47,8 @@
                             <select class="form-control col-5" @bind="cobros.VentaId" @onclick="Get">
                                 @foreach (var item in listaVentas)
                                 {
-                <option value="@item.VentaId">@item.VentaId</option>}
+                                    <option value="@item.VentaId">@item.VentaId</option>
+                                }
                             </select>
                             <ValidationMessage For="@(() => cobros.VentaId)" />
                         </div>
@@ -137,7 +138,8 @@
     </section>
 </EditForm>
 
-@code { [Parameter]
+@code { 
+    [Parameter]
     public int CobroId { get; set; }
 
     Cobros cobros = new Cobros();
@@ -244,7 +246,6 @@
             throw;
         }
     }
-
 
     private void Guardar()
     {
