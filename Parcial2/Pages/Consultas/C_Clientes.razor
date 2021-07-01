@@ -1,0 +1,95 @@
+﻿@page "/consultaClientes"
+@using Parcial2.Models
+@using Parcial2.BLL
+@using Blazored.Toast.Services
+
+@inject IToastService toast
+
+<div class="card">
+    <div class="card-header">
+        <h3>Consulta de Clientes</h3>
+    </div>
+
+    <div class="card-body">
+        <div class="form-group">
+            <div class="form-row">
+                <div class="input-group">
+                    <div class="col">
+                        <input type="text" class="form-control" placeholder="Criterio" @bind="Criterio" />
+                    </div>
+
+                    <div class="col">
+                        <select class="form-control" @bind="filtro">
+                            <option value="0">Todos</option>
+                            <option value="1">ClienteId</option>
+                            <option value="2">Nombres</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-primary" @onclick="Consultar"><i class="oi oi-magnifying-glass" /> Consultar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table class="table">
+        <thead class="thead-light">
+            <tr>
+                <th>Cliente Id</th>
+                <th>Nombres</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var Item in lista)
+            {
+                <tr>
+                    <td>@Item.ClienteId</td>
+                    <td>@Item.Nombres</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+@code {
+    int filtro = 0;
+    string Criterio;
+
+    public List<Clientes> Clientes { get; set; }
+    public List<Clientes> lista { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Actualizar();
+    }
+
+    void Actualizar()
+    {
+        Clientes = ClientesBLL.GetList(p => true).ToList();
+        lista = Clientes;
+    }
+
+
+    void Consultar()
+    {
+        if (filtro == 0)
+        {
+            lista = ClientesBLL.GetList(p => true).ToList();
+        }
+        else if (filtro == 1)
+        {
+            if (int.TryParse(Criterio, out int ClienteId))
+            {
+                lista = ClientesBLL.GetList(p => p.ClienteId == ClienteId).ToList();
+            }
+        }
+        else if (filtro == 2)
+        {
+            lista = ClientesBLL.GetList(p => p.Nombres.ToLower().Contains(Criterio.ToLower())).ToList();
+        }
+    }
+}
