@@ -28,7 +28,6 @@ namespace Parcial2.BLL
             {
                 db.Dispose();
             }
-
             return lista;
         }
     }
